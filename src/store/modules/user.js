@@ -1,5 +1,5 @@
+import { setToken, getToken, removeToken } from '@/utils/auth'
 import { loginApi } from '@/api/user'
-import { getToken, setToken, removeToken } from '@/utils/auth'
 const state = {
   token: getToken()
 }
@@ -27,7 +27,7 @@ const actions = {
 }
 
 export default {
-  namespace: true,
+  namespaced: true,
   state,
   mutations,
   actions

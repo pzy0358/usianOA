@@ -5,16 +5,16 @@
       <h1 style="font-size: 20px">手机号登录</h1>
       <el-card shadow="never" class="login-card">
         <!--登录表单-->
-        <el-form ref="ruleForm" :model="ruleForm" :rules="rules">
+        <el-form ref="form" :model="form" :rules="rules">
           <el-form-item prop="mobile">
             <el-input
-              v-model.trim="ruleForm.mobile"
+              v-model.trim="form.mobile"
               placeholder="请输入手机号"
             />
           </el-form-item>
           <el-form-item prop="password">
             <el-input
-              v-model.trim="ruleForm.password"
+              v-model.trim="form.password"
               type="password"
               placeholder="请输入密码"
               show-password
@@ -22,7 +22,7 @@
           </el-form-item>
           <el-form-item prop="isAgree">
             <el-checkbox
-              v-model="ruleForm.isAgree"
+              v-model="form.isAgree"
             >用户平台使用协议</el-checkbox>
           </el-form-item>
           <el-form-item>
@@ -39,7 +39,7 @@ export default {
   name: 'Login',
   data() {
     return {
-      ruleForm: {
+      form: {
         mobile: process.env.NODE_ENV === 'development' ? '13800000002' : '',
         password: process.env.NODE_ENV === 'development' ? 'hm#qd@23!' : '',
         isAgree: process.env.NODE_ENV === 'development'
@@ -74,10 +74,10 @@ export default {
   },
   methods: {
     submit() {
-      this.$refs.ruleForm.validate(async(valid) => {
+      this.$refs.form.validate(async(valid) => {
         if (valid) {
           // 执行登录相关操作
-          await this.$store.dispatch('user/login', this.ruleForm)
+          await this.$store.dispatch('user/login', this.form)
           this.$router.push('/')
         }
       })
