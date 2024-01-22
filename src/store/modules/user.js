@@ -1,7 +1,8 @@
 import { setToken, getToken, removeToken } from '@/utils/auth'
-import { loginApi } from '@/api/user'
+import { loginApi, getProfileApi } from '@/api/user'
 const state = {
-  token: getToken()
+  token: getToken(),
+  userInfo: {}
 }
 
 const mutations = {
@@ -14,6 +15,10 @@ const mutations = {
   removeToken(state) {
     state.token = null
     removeToken()
+  },
+  // 设置用户信息
+  setUser(state, user) {
+    state.userInfo = user
   }
 }
 
@@ -23,6 +28,19 @@ const actions = {
     delete payload.isAgree
     const token = await loginApi(payload)
     context.commit('setToken', token)
+  },
+
+  // 用户信息
+  async getUserInfo({ commit }) {
+    const res = await getProfileApi()
+    console.log('res=>', res)
+    commit('setUser', res)
+  },
+  logout(context) {
+    // 清除token
+    context.commit('removeToken')
+    // 清除用户信息
+    context.commit('setUser', {})
   }
 }
 

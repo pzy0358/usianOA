@@ -11,31 +11,47 @@
     <div class="right-menu">
       <el-dropdown class="avatar-container" trigger="click">
         <div class="avatar-wrapper">
-          <img :src="avatar + '?imageView2/1/w/80/h/80'" class="user-avatar" />
-          <i class="el-icon-caret-bottom" />
+          <!-- 头像 -->
+          <img v-if="avatar" :src="avatar" class="user-avatar">
+          <!-- <span v-else class="username">{{ name?.chanAt(2) }}</span> -->
+          <span class="name">{{ name }}</span>
+          <i class="el-icon-setting" />
         </div>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
           <router-link to="/">
-            <el-dropdown-item> Home </el-dropdown-item>
+            <el-dropdown-item> 主页 </el-dropdown-item>
           </router-link>
-          <a
-            target="_blank"
-            href="https://github.com/PanJiaChen/vue-admin-template/"
-          >
-            <el-dropdown-item>Github</el-dropdown-item>
-          </a>
-          <a
-            target="_blank"
-            href="https://panjiachen.github.io/vue-element-admin-site/#/"
-          >
-            <el-dropdown-item>Docs</el-dropdown-item>
-          </a>
+          <el-dropdown-item divided @click.native="changePassword">
+            <span style="display: block">修改密码</span>
+          </el-dropdown-item>
           <el-dropdown-item divided @click.native="logout">
-            <span style="display: block">Log Out</span>
+            <span style="display: block">退出</span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
     </div>
+
+    <el-dialog title="修改密码" :visible.sync="dialogVisible" width="600px">
+      <el-form :model="form" :rules="rules">
+        <el-form-item label="旧密码" prop="oldPassword" label-width="80px">
+          <el-input v-model="form.oldPassword" show-password size="small" />
+        </el-form-item>
+        <el-form-item label="新密码" prop="newPassword" label-width="80px">
+          <el-input v-model="form.newPassword" show-password size="small" />
+        </el-form-item>
+        <el-form-item
+          label="重复密码"
+          label-width="85px"
+          prop="confirmPassword"
+        >
+          <el-input v-model="form.confirmPassword" show-password size="small" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="updatePassword">确认修改</el-button>
+        <el-button @click="quxiao">取 消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -43,14 +59,52 @@
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
+import { changePassApi } from '@/api/user'
 
 export default {
   components: {
     Breadcrumb,
     Hamburger
   },
+  data() {
+    return {
+      dialogVisible: false,
+      form: {
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      },
+      rules: {
+        oldPassword: [
+          { required: true, message: '旧密码不能为空', trigger: 'blur' }
+        ],
+        newPassword: [
+          { required: true, message: '新密码不能为空', trigger: 'blur' },
+          {
+            trigger: 'blur',
+            min: 6,
+            max: 16,
+            message: '密码长度在6到16个字符'
+          }
+        ],
+        confirmPassword: [
+          { required: true, message: '重复密码不能为空', trigger: 'blur' },
+          {
+            trigger: 'blur',
+            validator: (rule, value, callback) => {
+              if (this.form.newPassword === value) {
+                callback()
+              } else {
+                callback(new Error('两次输入密码不一致'))
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
   computed: {
-    ...mapGetters(['sidebar', 'avatar'])
+    ...mapGetters(['sidebar', 'avatar', 'name'])
   },
   methods: {
     toggleSideBar() {
@@ -59,6 +113,27 @@ export default {
     async logout() {
       await this.$store.dispatch('user/logout')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+    },
+    changePassword() {
+      this.dialogVisible = true
+    },
+    updatePassword() {
+      this.$refs.form.validate(async(valid) => {
+        if (valid) {
+          delete this.form.confirmPassword
+          await changePassApi(this.form)
+          this.$message.success('修改密码成功')
+          this.dialogVisible = false
+          // 清空token与用户信息
+          this.$store.dispatch('user/logout')
+          // 跳转至登录页
+          this.$router.push('/login')
+        }
+      })
+    },
+    quxiao() {
+      this.dialogVisible = false
+      this.$refs.form = {}
     }
   }
 }
@@ -122,12 +197,35 @@ export default {
       .avatar-wrapper {
         margin-top: 5px;
         position: relative;
+        display: flex;
+        align-items: center;
+
+        .username {
+          width: 30px;
+          height: 30px;
+          text-align: center;
+          line-height: 30px;
+          border-radius: 50%;
+          background: #04c9be;
+          color: #fff;
+          margin-right: 4px;
+        }
+
+        .name {
+          //  用户名称距离右侧距离
+          margin-right: 10px;
+          font-size: 16px;
+        }
 
         .user-avatar {
           cursor: pointer;
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+        }
+
+        .el-icon-setting {
+          font-size: 20px;
         }
 
         .el-icon-caret-bottom {
