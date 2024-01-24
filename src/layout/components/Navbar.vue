@@ -133,7 +133,7 @@ export default {
     },
     quxiao() {
       this.dialogVisible = false
-      this.$refs.form = {}
+      this.form = {}
     }
   }
 }
