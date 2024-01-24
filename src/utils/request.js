@@ -32,7 +32,7 @@ service.interceptors.response.use(
       return data
     } else {
       Message({ type: 'error', message: message })
-      return Promise.reject(new Error(message))
+      // return Promise.reject(new Error(message))
     }
   },
   async(error) => {

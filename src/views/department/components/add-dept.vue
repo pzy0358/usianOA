@@ -1,11 +1,12 @@
 <template>
   <el-dialog
+    :before-close="close"
     title="新增部门"
     :visible.sync="showDialog"
     width="50%"
     @close="close"
   >
-    <el-form ref="form" label-width="120px" :model="form" :rules="rules">
+    <el-form ref="dialogform" label-width="120px" :model="form" :rules="rules">
       <el-form-item label="部门名称" prop="name">
         <el-input v-model="form.name" type="text" placeholder="2-10个字符" />
       </el-form-item>
@@ -48,7 +49,9 @@
 import {
   getDepartmentApi,
   getManagerApi,
-  addDepartmentApi
+  addDepartmentApi,
+  getDepartmentDetailApi,
+  updateDepartmentApi
 } from '@/api/department'
 
 export default {
@@ -86,7 +89,14 @@ export default {
           },
           {
             validator: async(rule, value, callback) => {
-              const departmentList = await getDepartmentApi()
+              let departmentList = await getDepartmentApi()
+
+              if (this.form.id) {
+                departmentList = departmentList.filter(
+                  (item) => item.name !== value
+                )
+              }
+
               if (departmentList.some((item) => item.name === value)) {
                 callback(new Error('部门名称已存在'))
               } else {
@@ -107,6 +117,22 @@ export default {
             max: 10,
             message: '部门编码2-10个字符',
             trigger: 'blur'
+          },
+          {
+            validator: async(rule, value, callback) => {
+              // 获取当前部门列表
+              let departmentList = await getDepartmentApi()
+              if (this.form.id) {
+                departmentList = departmentList.filter(
+                  (item) => item.code !== value
+                )
+              }
+              if (departmentList.some((item) => item.code === value)) {
+                callback(new Error('部门编码已存在'))
+              } else {
+                callback
+              }
+            }
           }
         ],
         managerId: [
@@ -132,7 +158,20 @@ export default {
   },
   methods: {
     close() {
-      this.form = {}
+      // 关闭的时候重新设置表单
+      this.form = {
+        // 部门名称
+        name: '',
+        // 部门编码
+        code: '',
+        // 部门负责人
+        managerId: '',
+        // 部门介绍
+        introduce: '',
+        // 父部门id
+        pid: ''
+      }
+      this.$refs.dialogform.resetFields()
       this.showDialog = false
       this.$emit('update:showDialog', false)
     },
@@ -141,17 +180,29 @@ export default {
       this.managerList = res
     },
     add() {
-      this.$refs.form.validate(async(valid) => {
+      this.$refs.dialogform.validate(async(valid) => {
         if (valid) {
-          this.form.pid = this.currentNodeId
-          // 调用接口
-          await addDepartmentApi(this.form)
+          let msg = '新增'
+
+          if (this.form.id) {
+            await updateDepartmentApi(this.currentNodeId, this.form)
+            msg = '编辑'
+          } else {
+            this.form.pid = this.currentNodeId
+            // 调用接口
+            await addDepartmentApi(this.form)
+          }
+
           this.close()
-          this.$message.success('新增部门成功')
+          this.$message.success(msg + '部门成功')
           // 通知父组件重新获取列表
           this.$emit('updateDepartment')
         }
       })
+    },
+    async getDepartmentDetail() {
+      const res = await getDepartmentDetailApi(this.currentNodeId)
+      this.form = res
     }
   }
 }

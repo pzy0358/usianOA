@@ -34,6 +34,7 @@
       </el-tree>
     </div>
     <add-dept
+      ref="dept"
       :show-dialog.sync="showDialog"
       :current-node-id="currentNodeId"
       @updateDepartment="getDepartment"
@@ -41,7 +42,7 @@
   </div>
 </template>
 <script>
-import { getDepartmentApi } from '@/api/department'
+import { getDepartmentApi, deleteDepartmentApi } from '@/api/department'
 import { transListToTreeData } from '@/utils'
 import addDept from './components/add-dept.vue'
 
@@ -55,7 +56,8 @@ export default {
       defaultProps: {
         label: 'name',
         children: 'children'
-      }
+      },
+      currentNodeId: null
     }
   },
   created() {
@@ -69,6 +71,16 @@ export default {
           this.currentNodeId = id
           this.showDialog = true
           break
+        case 'edit':
+          this.showDialog = true
+          this.currentNodeId = id
+          this.$nextTick(() => {
+            this.$refs.dept.getDepartmentDetail()
+          })
+          break
+        case 'remove':
+          this.removeDepartment(id)
+          break
       }
     },
     // 获取部门列表
@@ -76,6 +88,14 @@ export default {
       const res = await getDepartmentApi()
       console.log('res=>', res)
       this.departmentList = transListToTreeData(res, 0)
+    },
+    // 删除部门
+    removeDepartment(id) {
+      this.$confirm('你确定要删除吗').then(async() => {
+        await deleteDepartmentApi(id)
+        this.$message.success('删除成功')
+        this.getDepartment()
+      })
     }
   }
 }

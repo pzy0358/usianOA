@@ -24,3 +24,33 @@ export function addDepartmentApi(data) {
     data
   })
 }
+
+// 获取部门详情
+export function getDepartmentDetailApi(id) {
+  return service({
+    url: `/company/department/${id}`,
+    method: 'GET'
+  })
+}
+/**
+ * 修改-部门详情
+ * @param {*} id
+ * @param {*} data
+ * @returns
+ */
+export function updateDepartmentApi(id, data) {
+  console.log('id=>', id)
+  return service({
+    url: `/company/department/${id}`,
+    method: 'PUT',
+    data
+  })
+}
+
+// 删除部门
+export function deleteDepartmentApi(id) {
+  return service({
+    url: `/company/department/${id}`,
+    method: 'DELETE'
+  })
+}
